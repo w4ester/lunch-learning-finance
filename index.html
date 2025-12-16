@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍕 Lunch Picker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        :root {
+            --orange: #FF6B35;
+            --yellow: #FFD166;
+            --green: #06D6A0;
+            --blue: #118AB2;
+            --purple: #7B2CBF;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --red-100: #fee2e2;
+            --red-500: #ef4444;
+            --red-600: #dc2626;
+        }
+
+        body {
+            background: linear-gradient(135deg, #eff6ff 0%, #f5f3ff 50%, #fdf2f8 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            border-bottom: 4px solid var(--orange);
+        }
+
+        .header-content {
+            max-width: 56rem;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--gray-800);
+        }
+
+        .btn-settings {
+            font-size: 0.875rem;
+            background: var(--gray-100);
+            padding: 0.375rem 0.75rem;
+            border-radius: 9999px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-settings:hover { background: var(--gray-200); }
+
+        .parent-zone {
+            display: none;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, #e9d5ff 0%, #dbeafe 100%);
+            border-radius: 0.75rem;
+        }
+
+        .parent-zone.visible { display: block; }
+
+        .parent-zone label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+        }
+
+        .budget-input-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .budget-input-row span { font-size: 1.25rem; }
+
+        .budget-input {
+            width: 8rem;
+            padding: 0.5rem 1rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            border: 2px solid #c4b5fd;
+            border-radius: 0.75rem;
+            outline: none;
+        }
+
+        .budget-input:focus { border-color: var(--purple); }
+
+        .btn-clear {
+            margin-left: auto;
+            font-size: 0.875rem;
+            background: var(--red-100);
+            color: var(--red-600);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-clear:hover { background: #fecaca; }
+
+        .budget-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .budget-info .spent { color: var(--orange); }
+        .budget-info .budget { color: var(--green); }
+
+        .progress-bar {
+            height: 1rem;
+            background: var(--gray-200);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--green), var(--blue));
+            border-radius: 9999px;
+            transition: all 0.5s ease;
+            width: 0%;
+        }
+
+        .progress-fill.warning { background: linear-gradient(90deg, #eab308, var(--orange)); }
+        .progress-fill.danger { background: linear-gradient(90deg, var(--red-500), var(--red-600)); }
+
+        .budget-warning {
+            display: none;
+            text-align: center;
+            color: var(--red-600);
+            font-weight: 700;
+            font-size: 0.875rem;
+            padding: 0.5rem;
+            background: var(--red-100);
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+            animation: pulse-red 1.5s infinite;
+        }
+
+        .budget-warning.visible { display: block; }
+
+        @keyframes pulse-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        }
+
+        main {
+            max-width: 56rem;
+            margin: 0 auto;
+            padding: 1.5rem 1rem;
+        }
+
+        .month-title {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-700);
+            margin-bottom: 1.5rem;
+        }
+
+        .calendar-header {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .calendar-header div {
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--gray-500);
+            padding: 0.5rem;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem;
+        }
+
+        .day-card {
+            border-radius: 0.75rem;
+            padding: 0.5rem;
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid var(--gray-100);
+            background: white;
+        }
+
+        .day-card:hover:not(.closed) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            border-color: var(--blue);
+        }
+
+        .day-card.closed {
+            background: var(--gray-100);
+            color: var(--gray-400);
+            cursor: not-allowed;
+        }
+
+        .day-card.selected {
+            background: linear-gradient(135deg, var(--green), var(--blue));
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+
+        .day-card.today {
+            background: linear-gradient(135deg, var(--orange), var(--yellow));
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+
+        .day-number { font-size: 1.25rem; font-weight: 700; }
+        .day-label { font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        .order-summary {
+            display: none;
+            margin-top: 2rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            padding: 1.5rem;
+            border: 2px solid var(--yellow);
+        }
+
+        .order-summary.visible { display: block; }
+        .order-summary h3 { font-size: 1.25rem; font-weight: 700; color: var(--gray-800); margin-bottom: 1rem; }
+        .order-list { display: flex; flex-direction: column; gap: 0.75rem; }
+
+        .order-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            background: var(--gray-50);
+            border-radius: 0.75rem;
+        }
+
+        .order-item-info { flex: 1; }
+        .order-item-day { font-weight: 700; color: var(--gray-700); }
+        .order-item-details { font-size: 0.875rem; color: var(--gray-600); }
+        .order-item-right { display: flex; align-items: center; gap: 0.75rem; }
+        .order-item-price { font-weight: 700; color: var(--orange); }
+
+        .btn-remove {
+            width: 2rem;
+            height: 2rem;
+            background: var(--red-100);
+            color: var(--red-600);
+            border: none;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-remove:hover { background: #fecaca; }
+
+        .order-total {
+            border-top: 2px dashed var(--gray-200);
+            padding-top: 1rem;
+            margin-top: 1rem;
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .order-total-amount { color: var(--orange); }
+
+        .actions { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; }
+
+        .btn-action {
+            display: none;
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: white;
+            border: none;
+            border-radius: 1rem;
+            cursor: pointer;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+
+        .btn-action.visible { display: block; }
+        .btn-action:hover { transform: scale(1.02); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .btn-action:active { transform: scale(0.98); }
+        .btn-review { background: linear-gradient(135deg, var(--blue), var(--purple)); }
+        .btn-send { background: linear-gradient(135deg, var(--orange), var(--yellow)); font-size: 1.25rem; }
+
+        .modal { display: none; position: fixed; inset: 0; z-index: 50; }
+        .modal.visible { display: block; }
+        .modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+
+        .modal-content {
+            position: absolute;
+            inset: 1rem;
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (min-width: 768px) { .modal-content { inset: 2.5rem; } }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--orange), var(--yellow));
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title { font-size: 1.25rem; font-weight: 700; color: white; }
+
+        .btn-close {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            border-radius: 9999px;
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-close:hover { background: rgba(255,255,255,0.3); }
+
+        .modal-body { flex: 1; overflow-y: auto; padding: 1.5rem; }
+        .menu-section { margin-bottom: 1.5rem; }
+        .menu-section:last-child { margin-bottom: 0; }
+        .menu-section h4 { font-size: 1.125rem; font-weight: 700; color: var(--gray-700); margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .menu-section.border-top { border-top: 1px solid var(--gray-200); padding-top: 1.5rem; }
+
+        .item-card {
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 2px solid var(--gray-100);
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 0.75rem;
+        }
+
+        .item-card:hover { border-color: var(--gray-300); transform: scale(1.02); }
+        .item-card.selected { border-color: var(--blue); background: #eff6ff; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .item-card-content { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; }
+        .item-card-left { flex: 1; }
+        .item-tags { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.25rem; }
+
+        .category-badge { font-size: 0.65rem; padding: 2px 8px; border-radius: 9999px; font-weight: 600; }
+        .badge-savor { background: #fef3c7; color: #92400e; }
+        .badge-ancho { background: #fee2e2; color: #991b1b; }
+        .badge-sizzle { background: #fef9c3; color: #854d0e; }
+        .badge-hearth { background: #fde68a; color: #92400e; }
+        .badge-stock { background: #dcfce7; color: #166534; }
+        .badge-harvest { background: #d1fae5; color: #065f46; }
+        .badge-side { background: #f3e8ff; color: #6b21a8; }
+        .badge-drink { background: #dbeafe; color: #1e40af; }
+
+        .item-name { font-weight: 700; color: var(--gray-800); }
+        .item-allergens { font-size: 0.75rem; color: var(--gray-500); margin-top: 0.25rem; }
+        .item-card-right { text-align: right; }
+        .item-price { font-weight: 700; color: var(--orange); }
+        .item-check { color: var(--blue); font-size: 1.25rem; margin-top: 0.25rem; }
+
+        .modal-footer { padding: 1rem; background: var(--gray-50); border-top: 1px solid var(--gray-200); }
+        .day-total-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+        .day-total-label { font-weight: 600; color: var(--gray-600); }
+        .day-total-amount { font-size: 1.25rem; font-weight: 700; color: var(--orange); }
+
+        .btn-save {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, var(--green), var(--blue));
+            color: white;
+            font-weight: 700;
+            font-size: 1.125rem;
+            border: none;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+        }
+
+        .btn-save:hover { box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+
+        .confetti { position: fixed; pointer-events: none; z-index: 9999; }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+        @media (min-width: 768px) {
+            .logo { font-size: 1.875rem; }
+            .day-card { min-height: 100px; padding: 0.75rem; }
+            .day-number { font-size: 1.5rem; }
+            .calendar-header div { font-size: 0.875rem; }
+            .calendar-grid { gap: 0.75rem; }
+            .modal-header { padding: 1.5rem; }
+            .modal-title { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="header-top">
+                <h1 class="logo">🍕 Lunch Picker</h1>
+                <button class="btn-settings" onclick="toggleParentZone()">⚙️ Parent Zone</button>
+            </div>
+            <div id="parentZone" class="parent-zone">
+                <label>Weekly Budget 💰</label>
+                <div class="budget-input-row">
+                    <span>$</span>
+                    <input type="number" id="budgetInput" value="30.00" step="0.50" min="0" class="budget-input" onchange="updateBudget()">
+                    <button class="btn-clear" onclick="clearAllOrders()">🗑️ Clear All</button>
+                </div>
+            </div>
+            <div class="budget-info">
+                <span>Spent: <span id="spentAmount" class="spent">$0.00</span></span>
+                <span>Budget: <span id="budgetDisplay" class="budget">$30.00</span></span>
+            </div>
+            <div class="progress-bar">
+                <div id="budgetBar" class="progress-fill"></div>
+            </div>
+            <div id="budgetWarning" class="budget-warning">⚠️ Over Budget! Ask Dad first!</div>
+        </div>
+    </header>
+
+    <main>
+        <h2 class="month-title">📅 December 2025</h2>
+        <div class="calendar-header"><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div></div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+        <div id="orderSummary" class="order-summary">
+            <h3>🛒 Your Order</h3>
+            <div id="orderList" class="order-list"></div>
+            <div class="order-total"><span>Total:</span><span id="orderTotal" class="order-total-amount">$0.00</span></div>
+        </div>
+        <div class="actions">
+            <button id="reviewBtn" class="btn-action btn-review" onclick="reviewOrder()">📋 Review Order</button>
+            <button id="sendBtn" class="btn-action btn-send" onclick="sendToDad()">📱 Send to Dad!</button>
+        </div>
+    </main>
+
+    <div id="dayModal" class="modal">
+        <div class="modal-backdrop" onclick="closeModal()"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle" class="modal-title">Monday, Dec 16</h3>
+                <button class="btn-close" onclick="closeModal()">✕</button>
+            </div>
+            <div id="modalBody" class="modal-body"></div>
+            <div class="modal-footer">
+                <div class="day-total-row">
+                    <span class="day-total-label">Day Total:</span>
+                    <span id="dayTotal" class="day-total-amount">$0.00</span>
+                </div>
+                <button class="btn-save" onclick="confirmDaySelection()">✅ Save Selection</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const PRICES = { savor: 9.00, ancho: 9.00, sizzle: 6.95, soup: 3.95, salad: 7.00, hearth: 6.95, side: 3.00, fountain: 2.00, water_small: 0.75, milk: 1.65, tropicana: 3.25, gatorade: 3.50, lacroix: 2.75, bodyarmor: 4.50 };
+
+    const monthlyMenu = {
+        1: { meals: { savor: [{ name: 'Daily Special', tags: ['🍽️'] }], hearth: [{ name: 'Cheese Pizza', tags: ['🧀'] }, { name: 'Pepperoni Pizza', tags: ['🍕'] }], harvest: [{ name: 'Garden Salad', tags: ['🥗'] }] }},
+        2: { meals: { savor: [{ name: 'Daily Special', tags: ['🍽️'] }], hearth: [{ name: 'Cheese Pizza', tags: ['🧀'] }, { name: 'Pepperoni Pizza', tags: ['🍕'] }], harvest: [{ name: 'Garden Salad', tags: ['🥗'] }] }},
+        3: { meals: { savor: [{ name: 'Daily Special', tags: ['🍽️'] }], hearth: [{ name: 'Cheese Pizza', tags: ['🧀'] }, { name: 'Pepperoni Pizza', tags: ['🍕'] }] }},
+        4: { meals: { savor: [{ name: 'Daily Special', tags: ['🍽️'] }], hearth: [{ name: 'Cheese Pizza', tags: ['🧀'] }, { name: 'Pepperoni Pizza', tags: ['🍕'] }] }},
+        5: { meals: { savor: [{ name: 'Daily Special', tags: ['🍽️'] }], hearth: [{ name: 'Cheese Pizza', tags: ['🧀'] }, { name: 'Pepperoni Pizza', tags: ['🍕'] }] }},
+        8: { meals: { savor: [{ name: 'Daily Special', tags: ['🍽️'] }], hearth: [{ name: 'Cheese Pizza', tags: ['🧀'] }, { name: 'Pepperoni Pizza', tags: ['🍕'] }], harvest: [{ name: 'Garden Salad', tags: ['🥗'] }] }},
+        9: { meals: { savor: [{ name: 'Daily Special', tags: ['🍽️'] }], hearth: [{ name: 'Cheese Pizza', tags: ['🧀'] }, { name: 'Pepperoni Pizza', tags: ['🍕'] }], harvest: [{ name: 'Garden Salad', tags: ['🥗'] }] }},
+        10: { meals: { savor: [{ name: 'Daily Special', tags: ['🍽️'] }], hearth: [{ name: 'Cheese Pizza', tags: ['🧀'] }, { name: 'Pepperoni Pizza', tags: ['🍕'] }], harvest: [{ name: 'Garden Salad', tags: ['🥗'] }] }},
+        11: { meals: { savor: [{ name: 'Daily Special', tags: ['🍽️'] }], hearth: [{ name: 'Cheese Pizza', tags: ['🧀'] }, { name: 'Pepperoni Pizza', tags: ['🍕'] }], harvest: [{ name: 'Garden Salad', tags: ['🥗'] }] }},
+        12: { meals: { savor: [{ name: 'Daily Special', tags: ['🍽️'] }], hearth: [{ name: 'Cheese Pizza', tags: ['🧀'] }, { name: 'Pepperoni Pizza', tags: ['🍕'] }], harvest: [{ name: 'Garden Salad', tags: ['🥗'] }] }},
+        15: { meals: { ancho: [{ name: 'Fresh Mexican', tags: ['🌮'] }], savor: [{ name: 'Jerk Chicken', tags: ['🔥', '💪'] }, { name: 'Rice & Peas', tags: ['🌱'], price: 'side' }, { name: 'Sauteed Cabbage', tags: ['🥬'], price: 'side' }], stock: [{ name: 'Broccoli Cheddar Soup', tags: ['🧀'] }], sizzle: [{ name: 'Smashburger', tags: ['🍔'] }], hearth: [{ name: 'Cheese Pizza', tags: ['🧀'] }, { name: 'Pepperoni Pizza', tags: ['🍕'] }, { name: 'Veggie Pizza', tags: ['🥬'] }], harvest: [{ name: 'Broccoli Salad', tags: ['🥗'] }] }},
+        16: { meals: { ancho: [{ name: 'Fresh Mexican', tags: ['🌮'] }], savor: [{ name: 'Pasta Primavera w/ Shrimp', tags: ['🦐'] }, { name: 'Cheesy Garlic Bread', tags: ['🧀'], price: 'side' }], stock: [{ name: 'Chicken Noodle Soup', tags: ['🍜'] }], hearth: [{ name: 'Cheese Pizza', tags: ['🧀'] }, { name: 'Pepperoni Pizza', tags: ['🍕'] }, { name: 'Veggie Pizza', tags: ['🥬'] }], harvest: [{ name: 'Mediterranean Chickpea Salad', tags: ['🌱'] }] }},
+        17: { meals: { ancho: [{ name: 'Fresh Mexican', tags: ['🌮'] }], savor: [{ name: 'Bacon Breakfast Pizza', tags: ['🍕🥓'] }], breakfast: [{ name: 'Tater Tots', tags: ['🥔'], price: 'side' }] }},
+        18: { meals: { ancho: [{ name: 'Fresh Mexican', tags: ['🌮'] }], savor: [{ name: 'Chicken Waffle Sandwich', tags: ['🧇'] }], breakfast: [{ name: 'French Toast Sticks', tags: ['🍞'], price: 'side' }] }},
+        19: { meals: { ancho: [{ name: 'Fresh Mexican', tags: ['🌮'] }], savor: [{ name: 'Breakfast Burrito', tags: ['🌯'] }], breakfast: [{ name: 'Tater Tots', tags: ['🥔'], price: 'side' }] }},
+        22: { meals: { ancho: [{ name: 'Fresh Mexican', tags: ['🌮'] }], savor: [{ name: 'Chipotle Beef Chili', tags: ['🌶️', '💪'] }, { name: 'Corn Bread', tags: ['🌽'], price: 'side' }], sizzle: [{ name: 'Cuban Sandwich', tags: ['🥪'] }], hearth: [{ name: 'Cheese Pizza', tags: ['🧀'] }, { name: 'Pepperoni Pizza', tags: ['🍕'] }, { name: 'Veggie Pizza', tags: ['🥬'] }], harvest: [{ name: 'Broccoli Cheddar Salad', tags: ['🥗🧀'] }] }},
+        23: { meals: { ancho: [{ name: 'Fresh Mexican', tags: ['🌮'] }], stock: [{ name: 'Chicken Noodle Soup', tags: ['🍜'] }], sizzle: [{ name: 'Smash Burgers', tags: ['🍔🍔'] }], hearth: [{ name: 'Cheese Pizza', tags: ['🧀'] }, { name: 'Pepperoni Pizza', tags: ['🍕'] }, { name: 'Veggie Pizza', tags: ['🥬'] }], harvest: [{ name: 'Broccoli Cheddar Salad', tags: ['🥗'] }] }},
+        24: { closed: true, holiday: '🎄 Holiday Break' },
+        25: { closed: true, holiday: '🎄 Christmas Day' },
+        26: { meals: {} },
+        29: { meals: { ancho: [{ name: 'Fresh Mexican', tags: ['🌮'] }], savor: [{ name: 'Blackened Chicken', tags: ['🔥', '💪'] }, { name: 'Herb Potato Wedges', tags: ['🥔'], price: 'side' }, { name: 'Roasted Vegetables', tags: ['🥬'], price: 'side' }], stock: [{ name: 'French Onion Soup', tags: ['🧅🧀'] }], sizzle: [{ name: 'Buffalo Chicken Cheesesteak', tags: ['🔥'] }], hearth: [{ name: 'Cheese Pizza', tags: ['🧀'] }, { name: 'Pepperoni Pizza', tags: ['🍕'] }, { name: 'Veggie Pizza', tags: ['🥬'] }], harvest: [{ name: 'Caesar Salad', tags: ['🥗'] }, { name: 'Black & Blue Chicken Wrap', tags: ['🌯'] }] }},
+        30: { meals: { stock: [{ name: 'French Onion Soup', tags: ['🧅🧀'] }], sizzle: [{ name: 'Buffalo Chicken Cheesesteak', tags: ['🔥'] }], hearth: [{ name: 'Cheese Pizza', tags: ['🧀'] }, { name: 'Pepperoni Pizza', tags: ['🍕'] }, { name: 'Veggie Pizza', tags: ['🥬'] }], harvest: [{ name: 'Autumn Kale Salad', tags: ['🥗'] }, { name: 'Kickin Chicken Wrap', tags: ['🌯🔥'] }] }},
+        31: { closed: true, holiday: '🎉 New Years Eve' }
+    };
+
+    const drinksMenu = [
+        { name: 'Fountain Drink', price: PRICES.fountain, tags: ['🥤'] },
+        { name: 'Small Water', price: PRICES.water_small, tags: ['💧'] },
+        { name: 'Milk', price: PRICES.milk, tags: ['🥛'] },
+        { name: 'Tropicana', price: PRICES.tropicana, tags: ['🍊'] },
+        { name: 'Gatorade', price: PRICES.gatorade, tags: ['⚡'] },
+        { name: 'La Croix', price: PRICES.lacroix, tags: ['✨'] },
+        { name: 'Body Armor', price: PRICES.bodyarmor, tags: ['💪'] }
+    ];
+
+    let budget = 30.00, orders = {}, currentDay = null, tempSelection = { meal: null, drink: null, sides: [] };
+
+    function init() {
+        try {
+            const saved = localStorage.getItem('lunchOrders');
+            if (saved) { const d = JSON.parse(saved); orders = d.orders || {}; budget = d.budget || 30; document.getElementById('budgetInput').value = budget.toFixed(2); }
+        } catch(e) {}
+        renderCalendar(); updateBudgetDisplay(); updateOrderSummary();
+    }
+
+    function save() { localStorage.setItem('lunchOrders', JSON.stringify({ orders, budget })); }
+
+    function renderCalendar() {
+        const grid = document.getElementById('calendarGrid');
+        grid.innerHTML = '';
+        const weeks = [[1,2,3,4,5],[8,9,10,11,12],[15,16,17,18,19],[22,23,24,25,26],[29,30,31,null,null]];
+        const today = new Date().getDate();
+        weeks.forEach(w => w.forEach(day => {
+            if (!day) { grid.innerHTML += '<div></div>'; return; }
+            const d = monthlyMenu[day] || { meals: {} };
+            const hasOrder = orders[day], isClosed = d.closed, isToday = day === today;
+            let cls = 'day-card' + (isClosed ? ' closed' : hasOrder ? ' selected' : isToday ? ' today' : '');
+            let lbl = isClosed ? (d.holiday || 'Closed') : hasOrder ? '✅ ' + (orders[day].meal?.name?.split(' ')[0] || 'Set') : isToday ? 'TODAY' : Object.values(d.meals || {}).flat().length + ' options';
+            grid.innerHTML += `<div class="${cls}" onclick="${isClosed ? '' : `openDay(${day})`}"><div class="day-number">${day}</div><div class="day-label">${lbl}</div></div>`;
+        }));
+    }
+
+    function openDay(day) {
+        currentDay = day;
+        const d = monthlyMenu[day];
+        if (!d || d.closed) return;
+        tempSelection = orders[day] ? { ...orders[day], sides: orders[day].sides || [] } : { meal: null, drink: null, sides: [] };
+        const dn = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(2024,11,day).getDay()];
+        document.getElementById('modalTitle').textContent = `${dn}, December ${day}`;
+        renderModal(d); updateDayTotal();
+        document.getElementById('dayModal').classList.add('visible');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() { document.getElementById('dayModal').classList.remove('visible'); document.body.style.overflow = ''; }
+
+    function renderModal(d) {
+        const body = document.getElementById('modalBody');
+        let h = '<div class="menu-section"><h4>🍽️ Main Course</h4>';
+        const cats = { savor: { l: 'Savor', b: 'badge-savor', p: PRICES.savor }, ancho: { l: 'Ancho', b: 'badge-ancho', p: PRICES.ancho }, sizzle: { l: 'Sizzle', b: 'badge-sizzle', p: PRICES.sizzle }, hearth: { l: 'Hearth', b: 'badge-hearth', p: PRICES.hearth }, stock: { l: 'Soup', b: 'badge-stock', p: PRICES.soup }};
+        Object.entries(cats).forEach(([c, info]) => {
+            (d.meals[c] || []).filter(i => i.price !== 'side').forEach(item => {
+                const sel = tempSelection.meal?.name === item.name;
+                h += `<div class="item-card ${sel ? 'selected' : ''}" onclick="selectMeal('${item.name.replace(/'/g,"\\'")}','${c}',${info.p})"><div class="item-card-content"><div class="item-card-left"><div class="item-tags"><span class="category-badge ${info.b}">${info.l}</span>${(item.tags||[]).map(t=>`<span>${t}</span>`).join('')}</div><div class="item-name">${item.name}</div></div><div class="item-card-right"><div class="item-price">$${info.p.toFixed(2)}</div>${sel ? '<div class="item-check">✓</div>' : ''}</div></div></div>`;
+            });
+        });
+        h += '</div>';
+        if (d.meals.harvest?.length) {
+            h += '<div class="menu-section border-top"><h4>🥗 Salads</h4>';
+            d.meals.harvest.forEach(item => {
+                const sel = tempSelection.meal?.name === item.name;
+                h += `<div class="item-card ${sel ? 'selected' : ''}" onclick="selectMeal('${item.name.replace(/'/g,"\\'")}','harvest',${PRICES.salad})"><div class="item-card-content"><div class="item-card-left"><div class="item-tags"><span class="category-badge badge-harvest">Harvest</span>${(item.tags||[]).map(t=>`<span>${t}</span>`).join('')}</div><div class="item-name">${item.name}</div></div><div class="item-card-right"><div class="item-price">$${PRICES.salad.toFixed(2)}</div>${sel ? '<div class="item-check">✓</div>' : ''}</div></div></div>`;
+            });
+            h += '</div>';
+        }
+        const sides = [];
+        Object.entries(d.meals).forEach(([c, items]) => items.filter(i => i.price === 'side').forEach(i => sides.push({ ...i, cat: c })));
+        if (sides.length) {
+            h += '<div class="menu-section border-top"><h4>🍟 Sides</h4>';
+            sides.forEach(item => {
+                const sel = tempSelection.sides.some(s => s.name === item.name);
+                h += `<div class="item-card ${sel ? 'selected' : ''}" onclick="toggleSide('${item.name.replace(/'/g,"\\'")}')"><div class="item-card-content"><div class="item-card-left"><div class="item-tags"><span class="category-badge badge-side">Side</span>${(item.tags||[]).map(t=>`<span>${t}</span>`).join('')}</div><div class="item-name">${item.name}</div></div><div class="item-card-right"><div class="item-price">$${PRICES.side.toFixed(2)}</div>${sel ? '<div class="item-check">✓</div>' : ''}</div></div></div>`;
+            });
+            h += '</div>';
+        }
+        h += '<div class="menu-section border-top"><h4>🥤 Drinks</h4>';
+        drinksMenu.forEach(dr => {
+            const sel = tempSelection.drink?.name === dr.name;
+            h += `<div class="item-card ${sel ? 'selected' : ''}" onclick="selectDrink('${dr.name}',${dr.price})"><div class="item-card-content"><div class="item-card-left"><div class="item-tags"><span class="category-badge badge-drink">Drink</span><span>${dr.tags[0]}</span></div><div class="item-name">${dr.name}</div></div><div class="item-card-right"><div class="item-price">$${dr.price.toFixed(2)}</div>${sel ? '<div class="item-check">✓</div>' : ''}</div></div></div>`;
+        });
+        h += '</div>';
+        body.innerHTML = h;
+    }
+
+    function selectMeal(n, c, p) { tempSelection.meal = tempSelection.meal?.name === n ? null : { name: n, category: c, price: p }; renderModal(monthlyMenu[currentDay]); updateDayTotal(); }
+    function toggleSide(n) { const i = tempSelection.sides.findIndex(s => s.name === n); if (i >= 0) tempSelection.sides.splice(i, 1); else tempSelection.sides.push({ name: n, price: PRICES.side }); renderModal(monthlyMenu[currentDay]); updateDayTotal(); }
+    function selectDrink(n, p) { tempSelection.drink = tempSelection.drink?.name === n ? null : { name: n, price: p }; renderModal(monthlyMenu[currentDay]); updateDayTotal(); }
+    function updateDayTotal() { let t = (tempSelection.meal?.price || 0) + (tempSelection.drink?.price || 0); tempSelection.sides.forEach(s => t += s.price); document.getElementById('dayTotal').textContent = '$' + t.toFixed(2); }
+
+    function confirmDaySelection() {
+        if (!tempSelection.meal && !tempSelection.drink && !tempSelection.sides.length) delete orders[currentDay];
+        else orders[currentDay] = { ...tempSelection };
+        save(); renderCalendar(); updateBudgetDisplay(); updateOrderSummary(); closeModal();
+        if (tempSelection.meal || tempSelection.drink) confetti();
+    }
+
+    function updateBudget() { budget = parseFloat(document.getElementById('budgetInput').value) || 30; save(); updateBudgetDisplay(); }
+
+    function updateBudgetDisplay() {
+        const spent = calcTotal(), pct = Math.min(spent / budget * 100, 100), over = spent > budget;
+        document.getElementById('spentAmount').textContent = '$' + spent.toFixed(2);
+        document.getElementById('budgetDisplay').textContent = '$' + budget.toFixed(2);
+        const bar = document.getElementById('budgetBar');
+        bar.style.width = pct + '%';
+        bar.className = 'progress-fill' + (over ? ' danger' : pct > 80 ? ' warning' : '');
+        document.getElementById('spentAmount').style.color = over ? '#dc2626' : '#FF6B35';
+        document.getElementById('budgetWarning').classList.toggle('visible', over);
+    }
+
+    function calcTotal() { let t = 0; Object.values(orders).forEach(o => { t += (o.meal?.price || 0) + (o.drink?.price || 0); (o.sides || []).forEach(s => t += s.price); }); return t; }
+
+    function updateOrderSummary() {
+        const has = Object.keys(orders).length > 0;
+        document.getElementById('orderSummary').classList.toggle('visible', has);
+        document.getElementById('reviewBtn').classList.toggle('visible', has);
+        document.getElementById('sendBtn').classList.toggle('visible', has);
+        if (!has) return;
+        const list = document.getElementById('orderList');
+        let h = '';
+        Object.entries(orders).sort((a, b) => a[0] - b[0]).forEach(([day, o]) => {
+            const dn = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(2025, 11, day).getDay()];
+            let dt = (o.meal?.price || 0) + (o.drink?.price || 0); (o.sides || []).forEach(s => dt += s.price);
+            const items = [o.meal?.name, ...(o.sides || []).map(s => s.name), o.drink?.name].filter(Boolean);
+            h += `<div class="order-item"><div class="order-item-info"><div class="order-item-day">${dn} ${day}</div><div class="order-item-details">${items.join(' • ')}</div></div><div class="order-item-right"><span class="order-item-price">$${dt.toFixed(2)}</span><button class="btn-remove" onclick="removeOrder(${day})">✕</button></div></div>`;
+        });
+        list.innerHTML = h;
+        document.getElementById('orderTotal').textContent = '$' + calcTotal().toFixed(2);
+    }
+
+    function removeOrder(d) { delete orders[d]; save(); renderCalendar(); updateBudgetDisplay(); updateOrderSummary(); }
+    function reviewOrder() { document.getElementById('orderSummary').scrollIntoView({ behavior: 'smooth' }); }
+
+    function sendToDad() {
+        let msg = '🍕 LUNCH ORDER 🍕\n\n';
+        Object.entries(orders).sort((a, b) => a[0] - b[0]).forEach(([day, o]) => {
+            const dn = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(2025, 11, day).getDay()];
+            const items = [o.meal?.name, ...(o.sides || []).map(s => s.name), o.drink?.name].filter(Boolean);
+            msg += `${dn} 12/${day}: ${items.join(', ')}\n`;
+        });
+        msg += `\n💰 TOTAL: $${calcTotal().toFixed(2)}`;
+        if (calcTotal() > budget) msg += ` (⚠️ $${(calcTotal() - budget).toFixed(2)} over)`;
+        const enc = encodeURIComponent(msg);
+        window.location.href = /iPad|iPhone|iPod/.test(navigator.userAgent) ? `sms:&body=${enc}` : `sms:?body=${enc}`;
+        confetti();
+    }
+
+    function toggleParentZone() { document.getElementById('parentZone').classList.toggle('visible'); }
+    function clearAllOrders() { if (confirm('Clear all?')) { orders = {}; save(); renderCalendar(); updateBudgetDisplay(); updateOrderSummary(); } }
+
+    function confetti() {
+        const cols = ['#FF6B35','#FFD166','#06D6A0','#118AB2','#7B2CBF'];
+        for (let i = 0; i < 25; i++) {
+            const c = document.createElement('div');
+            c.className = 'confetti';
+            c.style.cssText = `left:${Math.random()*100}vw;top:-10px;width:${Math.random()*8+4}px;height:${Math.random()*8+4}px;background:${cols[Math.floor(Math.random()*cols.length)]};border-radius:${Math.random()>.5?'50%':'0'};animation:fall ${Math.random()*2+1}s linear forwards;`;
+            document.body.appendChild(c);
+            setTimeout(() => c.remove(), 3000);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
